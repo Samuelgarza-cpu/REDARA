@@ -11,6 +11,7 @@ import AuthLayout from '@/layouts/auth-layout';
 
 type RegisterForm = {
     name: string;
+    address: string;
     email: string;
     password: string;
     password_confirmation: string;
@@ -19,6 +20,7 @@ type RegisterForm = {
 export default function Register() {
     const { data, setData, post, processing, errors, reset } = useForm<Required<RegisterForm>>({
         name: '',
+        address: '',
         email: '',
         password: '',
         password_confirmation: '',
@@ -32,7 +34,7 @@ export default function Register() {
     };
 
     return (
-        <AuthLayout title="Create an account" description="Enter your details below to create your account">
+        <AuthLayout title="Crear una Cuenta" description="Ingrese sus datos a continuación para crear su cuenta">
             <Head title="Register" />
             <form className="flex flex-col gap-6" onSubmit={submit}>
                 <div className="grid gap-6">
@@ -49,6 +51,21 @@ export default function Register() {
                             onChange={(e) => setData('name', e.target.value)}
                             disabled={processing}
                             placeholder="Full name"
+                        />
+                        <InputError message={errors.name} className="mt-2" />
+                    </div>
+                    <div className="grid gap-2">
+                        <Label htmlFor="name">Dirección</Label>
+                        <Input
+                            id="address"
+                            type="text"
+                            required
+                            tabIndex={1}
+                            autoComplete="address"
+                            value={data.address}
+                            onChange={(e) => setData('address', e.target.value)}
+                            disabled={processing}
+                            placeholder="Full address"
                         />
                         <InputError message={errors.name} className="mt-2" />
                     </div>
