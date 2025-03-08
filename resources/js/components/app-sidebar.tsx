@@ -8,7 +8,7 @@ import AppLogo from './app-logo';
 
 const mainNavItems: NavGroup[] = [
     {
-        title: 'Tablero',
+        title: '',
         items: [
             {
                 title: 'Dashboard',

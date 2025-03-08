@@ -20,6 +20,14 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'address',
+        'voter_code',
+        'curp',
+        'registration_year',
+        'date_of_birth',
+        'section',
+        'validity',
+        'id_rol',
+        'id_user_register',
         'email',
         'password',
     ];

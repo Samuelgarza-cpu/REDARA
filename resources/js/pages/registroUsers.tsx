@@ -1,6 +1,7 @@
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/react';
+import Register from './auth/register';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -13,6 +14,7 @@ export default function RegistroUsers() {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Registro de Usuarios" />
+            <Register />
         </AppLayout>
     );
 }

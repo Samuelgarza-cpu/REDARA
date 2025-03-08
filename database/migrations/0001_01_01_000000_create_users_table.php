@@ -21,8 +21,8 @@ return new class extends Migration
             $table->string('date_of_birth')->nullable();
             $table->string('section')->nullable();
             $table->string('validity')->nullable();
-            $table->string('id_rol')->default(1);
-            $table->string('id_user_register')->default(1);
+            $table->integer('id_rol')->default(1);
+            $table->integer('id_user_register')->default(1);
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');

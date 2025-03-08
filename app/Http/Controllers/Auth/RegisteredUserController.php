@@ -30,6 +30,10 @@ class RegisteredUserController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
+
+        $idUsuario = auth()->id();
+        $idRol = auth()->user()->id_rol;
+
         $request->validate([
             'name' => 'required|string|max:255',
             'address' => 'required|string|max:255',
@@ -40,14 +44,22 @@ class RegisteredUserController extends Controller
         $user = User::create([
             'name' => $request->name,
             'address' => $request->address,
+            'voter_code' => $request->voter_code,
+            'curp' => $request->curp,
+            'registration_year' => $request->registration_year,
+            'date_of_birth' => $request->date_of_birth,
+            'section' => $request->section,
+            'validity' => $request->validity,
+            'id_rol' => $idRol,
+            'id_user_register' => $idUsuario,
             'email' => $request->email,
             'password' => Hash::make($request->password),
         ]);
 
-        event(new Registered($user));
+        // event(new Registered($user));
 
-        Auth::login($user);
+        // Auth::login($user);
 
-        return to_route('dashboard');
+        return to_route('registro');
     }
 }
