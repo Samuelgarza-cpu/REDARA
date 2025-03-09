@@ -1,13 +1,13 @@
-import { Head, useForm } from '@inertiajs/react';
+import { Head, useForm, usePage } from '@inertiajs/react';
 import { LoaderCircle } from 'lucide-react';
 import { FormEventHandler } from 'react';
 
 import InputError from '@/components/input-error';
-import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AuthLayout from '@/layouts/auth-layout';
+import { SharedData } from '@/types';
 
 type RegisterForm = {
     name: string;
@@ -24,8 +24,17 @@ type RegisterForm = {
     password: string;
     password_confirmation: string;
 };
+type Role = {
+    id: number;
+    role_name: string;
+};
 
-export default function Register() {
+interface RolePropos {
+    roles: Role[];
+}
+
+export default function Register({ roles = [] }: RolePropos) {
+    const { auth } = usePage<SharedData>().props;
     const { data, setData, post, processing, errors, reset } = useForm<Required<RegisterForm>>({
         name: '',
         address: '',
@@ -35,11 +44,11 @@ export default function Register() {
         date_of_birth: '',
         section: '',
         validity: '',
-        id_rol: 1,
+        id_rol: roles[0]['id'], //este vendra de la tabla usuario-roles-registra
         id_user_register: 1,
         email: '',
-        password: '',
-        password_confirmation: '',
+        password: '123456789',
+        password_confirmation: '123456789',
     });
 
     const submit: FormEventHandler = (e) => {
@@ -65,9 +74,15 @@ export default function Register() {
     };
 
     return (
-        <AuthLayout title="Crear una Cuenta" description="Ingrese sus datos a continuación para crear su cuenta">
+        <AuthLayout title="Registar Usuario" description="">
             <Head title="Register" />
+
             <form className="flex flex-col gap-6" onSubmit={submit}>
+                {/* {auth.user.id_rol == 1 ? (
+                    <h1>Nivel de usuario a Registrar: TODOS</h1>
+                ) : (
+                    <h1>Nivel de usuario a Registrar:{roles[0]['role_name']} </h1>
+                )} */}
                 <div className="grid gap-6">
                     <div className="grid gap-2">
                         <Label htmlFor="name">Nombre</Label>
@@ -198,51 +213,77 @@ export default function Register() {
                         />
                         <InputError message={errors.email} />
                     </div>
-
                     <div className="grid gap-2">
-                        <Label htmlFor="password">Password</Label>
-                        <Input
-                            id="password"
-                            type="password"
+                        <Label htmlFor="id_rol">Rol</Label>
+                        <select
+                            id="id_rol"
+                            name="id_rol"
                             required
-                            tabIndex={3}
-                            autoComplete="new-password"
-                            value={data.password}
-                            onChange={(e) => setData('password', e.target.value)}
+                            tabIndex={2}
+                            value={data.id_rol}
+                            onChange={(e) => setData('id_rol', parseInt(e.target.value))}
                             disabled={processing}
-                            placeholder="Password"
-                        />
-                        <InputError message={errors.password} />
+                            className="rounded-md border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                        >
+                            <option value="" disabled>
+                                Selecciona un rol
+                            </option>
+                            {roles.map((role) => (
+                                <option key={role.id} value={role.id}>
+                                    {role.role_name}
+                                </option>
+                            ))}
+                        </select>
+                        <InputError message={errors.id_rol} className="mt-2" />
                     </div>
-
-                    <div className="grid gap-2">
-                        <Label htmlFor="password_confirmation">Confirm password</Label>
-                        <Input
-                            id="password_confirmation"
-                            type="password"
-                            required
-                            tabIndex={4}
-                            autoComplete="new-password"
-                            value={data.password_confirmation}
-                            onChange={(e) => setData('password_confirmation', e.target.value)}
-                            disabled={processing}
-                            placeholder="Confirm password"
-                        />
-                        <InputError message={errors.password_confirmation} />
-                    </div>
+                    {auth.user.id_rol == 1 ? (
+                        <>
+                            {' '}
+                            <div className="grid gap-2">
+                                <Label htmlFor="password">Password</Label>
+                                <Input
+                                    id="password"
+                                    type="password"
+                                    required
+                                    tabIndex={3}
+                                    autoComplete="new-password"
+                                    value={data.password}
+                                    onChange={(e) => setData('password', e.target.value)}
+                                    disabled={processing}
+                                    placeholder="Password"
+                                />
+                                <InputError message={errors.password} />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor="password_confirmation">Confirm password</Label>
+                                <Input
+                                    id="password_confirmation"
+                                    type="password"
+                                    required
+                                    tabIndex={4}
+                                    autoComplete="new-password"
+                                    value={data.password_confirmation}
+                                    onChange={(e) => setData('password_confirmation', e.target.value)}
+                                    disabled={processing}
+                                    placeholder="Confirm password"
+                                />
+                                <InputError message={errors.password_confirmation} />
+                            </div>
+                        </>
+                    ) : null}
 
                     <Button type="submit" className="mt-2 w-full" tabIndex={5} disabled={processing}>
                         {processing && <LoaderCircle className="h-4 w-4 animate-spin" />}
-                        Crear Cuenta
+                        GUARDAR
                     </Button>
                 </div>
 
-                <div className="text-muted-foreground text-center text-sm">
+                {/* <div className="text-muted-foreground text-center text-sm">
                     ¿Ya tienes una cuenta?{' '}
                     <TextLink href={route('login')} tabIndex={6}>
                         Accesar
                     </TextLink>
-                </div>
+                </div> */}
             </form>
         </AuthLayout>
     );

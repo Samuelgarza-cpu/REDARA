@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\RegisteredUserController;
+use App\Http\Controllers\RegistroUsersController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -17,9 +18,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('register');
 
     Route::post('register', [RegisteredUserController::class, 'store']);
-    Route::get('registro', function () {
-        return Inertia::render('registroUsers');
-    })->name('registro');
+    Route::get('registro', [RegistroUsersController::class, 'index'])->name('registro');
+    Route::get('tabla-registros', [RegistroUsersController::class, 'table'])->name('tablaregistros');
 });
 
 require __DIR__ . '/settings.php';

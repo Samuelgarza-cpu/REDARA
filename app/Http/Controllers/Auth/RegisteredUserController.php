@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\Roles;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
@@ -20,7 +21,9 @@ class RegisteredUserController extends Controller
      */
     public function create(): Response
     {
-        return Inertia::render('auth/register');
+        return Inertia::render('auth/register', [
+            'roles' => Roles::all() ?? []
+        ]);
     }
 
     /**
@@ -32,7 +35,6 @@ class RegisteredUserController extends Controller
     {
 
         $idUsuario = auth()->id();
-        $idRol = auth()->user()->id_rol;
 
         $request->validate([
             'name' => 'required|string|max:255',
@@ -50,7 +52,7 @@ class RegisteredUserController extends Controller
             'date_of_birth' => $request->date_of_birth,
             'section' => $request->section,
             'validity' => $request->validity,
-            'id_rol' => $idRol,
+            'id_rol' => $request->id_rol,
             'id_user_register' => $idUsuario,
             'email' => $request->email,
             'password' => Hash::make($request->password),

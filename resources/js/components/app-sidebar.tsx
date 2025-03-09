@@ -3,7 +3,7 @@ import { NavUser } from '@/components/nav-user';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { NavGroup, type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
-import { BookOpen, ClipboardPlus, Folder, LayoutGrid } from 'lucide-react';
+import { BookOpen, BookOpenCheck, ClipboardPlus, Folder, LayoutGrid } from 'lucide-react';
 import AppLogo from './app-logo';
 
 const mainNavItems: NavGroup[] = [
@@ -17,9 +17,14 @@ const mainNavItems: NavGroup[] = [
             },
 
             {
-                title: 'Registro',
+                title: 'Registrar',
                 url: '/registro',
                 icon: ClipboardPlus,
+            },
+            {
+                title: 'Mis Registrados',
+                url: '/tabla-registros',
+                icon: BookOpenCheck,
             },
         ],
     },
