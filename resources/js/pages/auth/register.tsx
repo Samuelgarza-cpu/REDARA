@@ -1,6 +1,6 @@
-import { Head, useForm, usePage } from '@inertiajs/react';
+import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import { LoaderCircle } from 'lucide-react';
-import { FormEventHandler } from 'react';
+import { FormEventHandler, useRef, useState } from 'react';
 
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
@@ -23,6 +23,7 @@ type RegisterForm = {
     email: string;
     password: string;
     password_confirmation: string;
+    photo: File | null;
 };
 type Role = {
     id: number;
@@ -35,6 +36,8 @@ interface RolePropos {
 
 export default function Register({ roles = [] }: RolePropos) {
     const { auth } = usePage<SharedData>().props;
+    const [showModal, setShowModal] = useState(true);
+    const fileInputRef = useRef<HTMLInputElement | null>(null);
     const { data, setData, post, processing, errors, reset } = useForm<Required<RegisterForm>>({
         name: '',
         address: '',
@@ -49,12 +52,13 @@ export default function Register({ roles = [] }: RolePropos) {
         email: '',
         password: '123456789',
         password_confirmation: '123456789',
+        photo: null,
     });
 
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
         post(route('register'), {
-            onFinish: () =>
+            onFinish: () => {
                 reset(
                     'name',
                     'address',
@@ -69,20 +73,63 @@ export default function Register({ roles = [] }: RolePropos) {
                     'email',
                     'password',
                     'password_confirmation',
-                ),
+                    'photo',
+                );
+
+                // ✅ Limpiar el input file manualmente
+                if (fileInputRef.current) {
+                    fileInputRef.current.value = '';
+                }
+            },
         });
+    };
+
+    const handleSelectPhoto = () => {
+        if (fileInputRef.current) {
+            fileInputRef.current.click();
+        }
+    };
+
+    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (file) {
+            setData('photo', file);
+            setShowModal(false);
+        }
     };
 
     return (
         <AuthLayout title="Registar Usuario" description="">
             <Head title="Register" />
 
+            {showModal && (
+                <div className="bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center bg-black">
+                    <div className="rounded-lg bg-white p-6 text-center shadow-lg">
+                        <h2 className="mb-4 text-lg font-bold">Seleccionar Foto</h2>
+                        <div className="flex gap-4">
+                            <Button onClick={handleSelectPhoto}>Seleccionar de la Galería</Button>
+                            <Button onClick={() => alert('Función de cámara no implementada')}>Tomar Foto</Button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <form className="flex flex-col gap-6" onSubmit={submit}>
-                {/* {auth.user.id_rol == 1 ? (
-                    <h1>Nivel de usuario a Registrar: TODOS</h1>
-                ) : (
-                    <h1>Nivel de usuario a Registrar:{roles[0]['role_name']} </h1>
-                )} */}
+                <input type="file" accept="image/*" ref={fileInputRef} onChange={handleFileChange} className="hidden" />
+
+                {data.photo && (
+                    <div className="text-center">
+                        <Link href="/registro" prefetch>
+                            <img
+                                src={URL.createObjectURL(data.photo)}
+                                alt="Foto seleccionada"
+                                className="fill mx-auto h-32 w-48 rounded-lg object-fill"
+                            />
+                        </Link>
+
+                        <InputError message={errors.photo} className="mt-2" />
+                    </div>
+                )}
                 <div className="grid gap-6">
                     <div className="grid gap-2">
                         <Label htmlFor="name">Nombre</Label>

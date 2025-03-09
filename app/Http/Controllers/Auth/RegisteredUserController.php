@@ -34,6 +34,8 @@ class RegisteredUserController extends Controller
     public function store(Request $request): RedirectResponse
     {
 
+
+
         $idUsuario = auth()->id();
 
         $request->validate([
@@ -41,7 +43,14 @@ class RegisteredUserController extends Controller
             'address' => 'required|string|max:255',
             'email' => 'required|string|lowercase|email|max:255|unique:' . User::class,
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            // 'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', // Validación de la imagen
+
         ]);
+
+        $imagePath = null;
+        if ($request->hasFile('photo')) {
+            $imagePath = $request->file('photo')->store('users', 'public');
+        }
 
         $user = User::create([
             'name' => $request->name,
@@ -56,12 +65,13 @@ class RegisteredUserController extends Controller
             'id_user_register' => $idUsuario,
             'email' => $request->email,
             'password' => Hash::make($request->password),
+            'photo' => $imagePath,
         ]);
 
         // event(new Registered($user));
 
         // Auth::login($user);
 
-        return to_route('registro');
+        return to_route('tablaregistros');
     }
 }

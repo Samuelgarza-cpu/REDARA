@@ -57,6 +57,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 type Users = {
     name: string;
     email: string;
+    photo: string;
 };
 interface UsersProps {
     registeredUsers: Users[];
@@ -73,6 +74,7 @@ export default function TableRegisters({ registeredUsers = [], totalRegistration
                     <TableRow>
                         <TableHead className="w-[100px]">Nombre</TableHead>
                         <TableHead>Correo</TableHead>
+                        <TableHead>Img</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -80,6 +82,13 @@ export default function TableRegisters({ registeredUsers = [], totalRegistration
                         <TableRow key={user.email}>
                             <TableCell className="font-medium">{user.name}</TableCell>
                             <TableCell>{user.email}</TableCell>
+                            <TableCell>
+                                {user.photo ? (
+                                    <img src={`/storage/${user.photo}`} alt="Foto de perfil" className="h-10 w-10 rounded-sm object-cover" />
+                                ) : (
+                                    <span>Sin foto</span>
+                                )}
+                            </TableCell>
                         </TableRow>
                     ))}
                 </TableBody>
