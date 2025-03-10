@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AuthLayout from '@/layouts/auth-layout';
 import { SharedData } from '@/types';
+import axios from 'axios';
 
 type RegisterForm = {
     name: string;
@@ -32,6 +33,12 @@ type Role = {
 
 interface RolePropos {
     roles: Role[];
+}
+
+interface User {
+    id: number;
+    name: string;
+    email: string;
 }
 
 export default function Register({ roles = [] }: RolePropos) {
@@ -95,6 +102,70 @@ export default function Register({ roles = [] }: RolePropos) {
         if (file) {
             setData('photo', file);
             setShowModal(false);
+
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = async () => {
+                const base64Image: string = reader.result?.toString().split(',')[1] || '';
+                cargarImagenYProcesarOCR(base64Image);
+            };
+        }
+    };
+
+    const cargarImagenYProcesarOCR = async (base64Image: string) => {
+        try {
+            const apiKey = import.meta.env.VITE_API_KEY_ORC;
+            const visionResponse = await axios.post(`https://vision.googleapis.com/v1/images:annotate?key=${apiKey}`, {
+                requests: [
+                    {
+                        image: { content: base64Image },
+                        features: [{ type: 'TEXT_DETECTION' }],
+                    },
+                ],
+            });
+
+            const informacionINE = visionResponse.data.responses[0].textAnnotations;
+
+            //ENCONTRAR INDICES DE PARTIDA
+            const IndexDomicilio = informacionINE.findIndex((OCR: any) => OCR.description === 'DOMICILIO');
+            const IndexClaveElector = informacionINE.findIndex((OCR: any) => OCR.description === 'ELECTOR'); //31
+            const IndexCurp = informacionINE.findIndex((OCR: any) => OCR.description === 'CURP'); //33
+            const IndexAñoRegistro = informacionINE.findIndex((OCR: any) => OCR.description === 'REGISTRO'); //37 Y 38
+
+            //CREAR VARIABLES DE CONCATENACION
+
+            const nameLarge = informacionINE[14]['description'] + ' ' + informacionINE[12]['description'] + ' ' + informacionINE[13]['description'];
+            const addressOCR =
+                informacionINE[IndexDomicilio + 1]['description'] +
+                ' ' +
+                informacionINE[IndexDomicilio + 2]['description'] +
+                ' ' +
+                informacionINE[IndexDomicilio + 3]['description'] +
+                ' ' +
+                informacionINE[IndexDomicilio + 4]['description'] +
+                ' ' +
+                informacionINE[IndexDomicilio + 5]['description'] +
+                ' ' +
+                informacionINE[IndexDomicilio + 6]['description'] +
+                ' ' +
+                informacionINE[IndexDomicilio + 7]['description'] +
+                ' ' +
+                informacionINE[IndexDomicilio + 8]['description'] +
+                informacionINE[IndexDomicilio + 9]['description'] +
+                informacionINE[IndexDomicilio + 10]['description'];
+            const voter_codeOCR = informacionINE[IndexClaveElector + 1]['description'];
+            const curpOCR = informacionINE[IndexCurp + 1]['description'];
+            // const registration_yearOCR = '';
+            // const date_of_birthOCR = '';
+            // const sectionOCR = '';
+            // const validityOCR = '';
+
+            setData('name', nameLarge);
+            setData('address', addressOCR);
+            setData('voter_code', voter_codeOCR);
+            setData('curp', curpOCR);
+        } catch (error) {
+            console.error('Error al realizar OCR con Google Vision:', error);
         }
     };
 

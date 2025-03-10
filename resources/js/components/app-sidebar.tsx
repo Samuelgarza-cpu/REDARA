@@ -3,18 +3,18 @@ import { NavUser } from '@/components/nav-user';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { NavGroup, type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
-import { BookOpen, BookOpenCheck, ClipboardPlus, Folder, LayoutGrid } from 'lucide-react';
+import { BookOpen, BookOpenCheck, ClipboardPlus, Folder } from 'lucide-react';
 import AppLogo from './app-logo';
 
 const mainNavItems: NavGroup[] = [
     {
         title: '',
         items: [
-            {
-                title: 'Dashboard',
-                url: '/dashboard',
-                icon: LayoutGrid,
-            },
+            // {
+            //     title: 'Dashboard',
+            //     url: '/dashboard',
+            //     icon: LayoutGrid,
+            // },
 
             {
                 title: 'Registrar',
