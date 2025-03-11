@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AuthLayout from '@/layouts/auth-layout';
 import { SharedData } from '@/types';
+import { Textarea } from '@headlessui/react';
 import axios from 'axios';
 
 type RegisterForm = {
@@ -42,9 +43,14 @@ interface User {
 }
 
 export default function Register({ roles = [] }: RolePropos) {
+    const [stream, setStream] = useState<MediaStream | null>(null);
     const { auth } = usePage<SharedData>().props;
     const [showModal, setShowModal] = useState(true);
+    const [showCanvas, setShowCanvas] = useState(false);
+    const [showVideo, setShowVideo] = useState(true);
     const fileInputRef = useRef<HTMLInputElement | null>(null);
+    const videoRef = useRef<HTMLVideoElement | null>(null);
+    const canvaRef = useRef<HTMLCanvasElement | null>(null);
     const { data, setData, post, processing, errors, reset } = useForm<Required<RegisterForm>>({
         name: '',
         address: '',
@@ -125,7 +131,6 @@ export default function Register({ roles = [] }: RolePropos) {
             });
 
             const informacionINE = visionResponse.data.responses[0].textAnnotations;
-            console.log(informacionINE);
 
             //ENCONTRAR INDICES DE PARTIDA
             const IndexNombre = informacionINE.findIndex((OCR: any) => OCR.description === 'NOMBRE');
@@ -167,6 +172,90 @@ export default function Register({ roles = [] }: RolePropos) {
             console.error('Error al realizar OCR con Google Vision:', error);
         }
     };
+    const verCamara = () => {
+        setShowModal(false);
+        navigator.mediaDevices
+            .getUserMedia({
+                video: { width: 1920, height: 1080 },
+            })
+            .then((stream) => {
+                setStream(stream);
+                const miVideo = videoRef.current;
+                if (miVideo) {
+                    miVideo.srcObject = stream;
+                    miVideo.play();
+                }
+            })
+            .catch((err) => {
+                console.error('Error al acceder a la cámara:', err);
+            });
+    };
+    const tomarFoto = () => {
+        setShowCanvas(true);
+        setTimeout(() => {
+            const w = 420;
+            const h = w / (16 / 9);
+
+            const video = videoRef.current;
+            const canva = canvaRef.current;
+
+            if (video && canva) {
+                canva.width = w;
+                canva.height = h;
+                const context = canva.getContext('2d');
+
+                if (context) {
+                    context.drawImage(video, 0, 0, w, h);
+                    const base64Image = canva.toDataURL('image/jpeg').split(',')[1];
+                    cargarImagenYProcesarOCR(base64Image);
+                    fetch(`data:image/jpeg;base64,${base64Image}`)
+                        .then((res) => res.blob())
+                        .then((blob) => {
+                            const file = new File([blob], 'random.jpg', { type: 'image/jpeg' });
+                            setData('photo', file);
+                        });
+
+                    if (stream) {
+                        stream.getTracks().forEach((track) => track.stop());
+                        setStream(null);
+                    }
+
+                    if (videoRef.current) {
+                        videoRef.current.srcObject = null;
+                    }
+
+                    setShowVideo(false);
+                    setShowCanvas(false);
+                } else {
+                    console.error('No se pudo obtener el contexto 2D del canvas.');
+                }
+            } else {
+                console.error('El video o el canvas no están disponibles.');
+            }
+        }, 300);
+    };
+
+    const cerrarFoto = () => {
+        const f = canvaRef.current;
+        if (f) {
+            const context = f.getContext('2d');
+            if (context) {
+                context.clearRect(0, 0, f.width, f.height);
+            } else {
+                console.error('No se pudo obtener el contexto 2D del canvas.');
+            }
+        } else {
+            console.error('El canvas no está disponible.');
+        }
+        if (stream) {
+            stream.getTracks().forEach((track) => track.stop()); // Detiene la cámara
+            setStream(null); // Limpia el estado
+        }
+
+        if (videoRef.current) {
+            videoRef.current.srcObject = null; // Limpia el video
+        }
+    };
 
     return (
         <AuthLayout title="Registar Usuario" description="">
@@ -178,11 +267,17 @@ export default function Register({ roles = [] }: RolePropos) {
                         <h2 className="mb-4 text-lg font-bold">Seleccionar Foto</h2>
                         <div className="flex gap-4">
                             <Button onClick={handleSelectPhoto}>Seleccionar de la Galería</Button>
-                            <Button onClick={() => alert('Función de cámara no implementada')}>Tomar Foto</Button>
+                            <Button onClick={verCamara}>Tomar Foto</Button>
                         </div>
                     </div>
                 </div>
             )}
+
+            <div className="flex flex-col gap-6">
+                {showVideo && <video ref={videoRef}></video>}
+                {showCanvas && <canvas ref={canvaRef}></canvas>}
+                {showVideo && <Button onClick={tomarFoto}>Tomar Foto</Button>}
+            </div>
 
             <form className="flex flex-col gap-6" onSubmit={submit}>
                 <input type="file" accept="image/*" ref={fileInputRef} onChange={handleFileChange} className="hidden" />
@@ -218,17 +313,15 @@ export default function Register({ roles = [] }: RolePropos) {
                         <InputError message={errors.name} className="mt-2" />
                     </div>
                     <div className="grid gap-2">
-                        <Label htmlFor="name">Dirección</Label>
-                        <Input
+                        <Label htmlFor="address">Dirección</Label>
+                        <Textarea
                             id="address"
-                            type="text"
                             required
                             tabIndex={1}
                             autoComplete="address"
                             value={data.address}
                             onChange={(e) => setData('address', e.target.value)}
                             disabled={processing}
-                            // placeholder="Full address"
                         />
                         <InputError message={errors.address} className="mt-2" />
                     </div>
