@@ -1,4 +1,3 @@
-import AppLogoIcon from '@/components/app-logo-icon';
 import { type PropsWithChildren } from 'react';
 
 interface AuthLayoutProps {
@@ -14,9 +13,9 @@ export default function AuthSimpleLayout({ children, title, description }: Props
                 <div className="flex flex-col gap-8">
                     <div className="flex flex-col items-center gap-4">
                         {/* <Link href={route('home')} className="flex flex-col items-center gap-2 font-medium"> */}
-                        <div className="mb-1 flex size-64 items-center justify-center rounded-full">
+                        {/* <div className="mb-1 flex size-64 items-center justify-center rounded-full">
                             <AppLogoIcon className="rounded-xl" alt="Logo" />
-                        </div>
+                        </div> */}
                         <span className="sr-only">{title}</span>
                         {/* </Link> */}
 

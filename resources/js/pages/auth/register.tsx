@@ -125,45 +125,44 @@ export default function Register({ roles = [] }: RolePropos) {
             });
 
             const informacionINE = visionResponse.data.responses[0].textAnnotations;
+            console.log(informacionINE);
 
             //ENCONTRAR INDICES DE PARTIDA
+            const IndexNombre = informacionINE.findIndex((OCR: any) => OCR.description === 'NOMBRE');
             const IndexDomicilio = informacionINE.findIndex((OCR: any) => OCR.description === 'DOMICILIO');
             const IndexClaveElector = informacionINE.findIndex((OCR: any) => OCR.description === 'ELECTOR'); //31
             const IndexCurp = informacionINE.findIndex((OCR: any) => OCR.description === 'CURP'); //33
-            const IndexAñoRegistro = informacionINE.findIndex((OCR: any) => OCR.description === 'REGISTRO'); //37 Y 38
+            const IndexAnoRegistro = informacionINE.findIndex((OCR: any) => OCR.description === 'REGISTRO'); //37 Y 38
+            const IndexFechaNacimiento = informacionINE.findIndex((OCR: any) => OCR.description === 'NACIMIENTO');
+
+            const elementosEntre = informacionINE.slice(IndexNombre + 1, IndexDomicilio); // Esto extrae la informacion entre dos elementos de un array
+            const nameLarge = elementosEntre.map((obj: any) => obj.description).join(' ');
+            const elementosEntre2 = informacionINE.slice(IndexDomicilio + 1, IndexClaveElector - 2);
+            const addressOCR = elementosEntre2.map((obj: any) => obj.description).join(' ');
+            //DESPUES HICE ESTO, AL RATO LO JUNTO
+            const SearchArrayIndex = (data: [], descripcion: string) => {
+                return data.findIndex((OCR: any) => OCR.description === descripcion);
+            };
 
             //CREAR VARIABLES DE CONCATENACION
 
-            const nameLarge = informacionINE[14]['description'] + ' ' + informacionINE[12]['description'] + ' ' + informacionINE[13]['description'];
-            const addressOCR =
-                informacionINE[IndexDomicilio + 1]['description'] +
-                ' ' +
-                informacionINE[IndexDomicilio + 2]['description'] +
-                ' ' +
-                informacionINE[IndexDomicilio + 3]['description'] +
-                ' ' +
-                informacionINE[IndexDomicilio + 4]['description'] +
-                ' ' +
-                informacionINE[IndexDomicilio + 5]['description'] +
-                ' ' +
-                informacionINE[IndexDomicilio + 6]['description'] +
-                ' ' +
-                informacionINE[IndexDomicilio + 7]['description'] +
-                ' ' +
-                informacionINE[IndexDomicilio + 8]['description'] +
-                informacionINE[IndexDomicilio + 9]['description'] +
-                informacionINE[IndexDomicilio + 10]['description'];
             const voter_codeOCR = informacionINE[IndexClaveElector + 1]['description'];
             const curpOCR = informacionINE[IndexCurp + 1]['description'];
-            // const registration_yearOCR = '';
-            // const date_of_birthOCR = '';
-            // const sectionOCR = '';
-            // const validityOCR = '';
+            const registration_yearOCR =
+                informacionINE[IndexAnoRegistro + 1]['description'] + ' ' + informacionINE[IndexAnoRegistro + 2]['description'];
+            const date_of_birthOCR = informacionINE[IndexFechaNacimiento + 1]['description'];
+
+            const sectionOCR = informacionINE[SearchArrayIndex(informacionINE, 'SECCIÓN') + 2]['description'];
+            const validityOCR = informacionINE[SearchArrayIndex(informacionINE, 'VIGENCIA') + 2]['description'];
 
             setData('name', nameLarge);
             setData('address', addressOCR);
             setData('voter_code', voter_codeOCR);
             setData('curp', curpOCR);
+            setData('registration_year', registration_yearOCR);
+            setData('date_of_birth', date_of_birthOCR);
+            setData('section', sectionOCR);
+            setData('validity', validityOCR);
         } catch (error) {
             console.error('Error al realizar OCR con Google Vision:', error);
         }
@@ -276,7 +275,7 @@ export default function Register({ roles = [] }: RolePropos) {
                         <InputError message={errors.registration_year} className="mt-2" />
                     </div>
                     <div className="grid gap-2">
-                        <Label htmlFor="name">Fecha de Registro</Label>
+                        <Label htmlFor="name">Fecha de Nacimiento</Label>
                         <Input
                             id="date_of_birth"
                             type="text"

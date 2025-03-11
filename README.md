@@ -7,6 +7,7 @@ PRIMER COMMIT
 -composer run dev
 -php artisan storage:link
 -php artisan lang:publish
+-npm install @google-cloud/vision
 
 https://www.php.net/manual/es/timezones.america.php // para cambiar la zona horaria
 #PaginasNecesarias
