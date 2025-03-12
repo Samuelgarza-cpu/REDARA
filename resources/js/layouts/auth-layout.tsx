@@ -4,11 +4,12 @@ interface AuthLayout2 {
     children: React.ReactNode;
     title: string;
     description: string;
+    showImage?: boolean;
 }
 
-export default function AuthLayout({ children, title, description, ...props }: AuthLayout2) {
+export default function AuthLayout({ children, title, description, showImage, ...props }: AuthLayout2) {
     return (
-        <AuthLayoutTemplate title={title} description={description} {...props}>
+        <AuthLayoutTemplate title={title} description={description} showImage={showImage} {...props}>
             {children}
         </AuthLayoutTemplate>
     );

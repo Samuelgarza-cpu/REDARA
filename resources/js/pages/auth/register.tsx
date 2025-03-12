@@ -10,7 +10,7 @@ import AuthLayout from '@/layouts/auth-layout';
 import { SharedData } from '@/types';
 import { Textarea } from '@headlessui/react';
 import axios from 'axios';
-
+import Compressor from 'compressorjs';
 type RegisterForm = {
     name: string;
     address: string;
@@ -42,7 +42,20 @@ interface User {
     email: string;
 }
 
+const esMovil = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+const MB = 1048576;
+
+const videoWidth = esMovil ? 720 : 1080;
+const videoHeight = esMovil ? 1080 : 720;
+
+// Coordenadas y tamaño del recorte en proporción a la resolución del video
+const cropWidth = videoWidth * 0.5; // 20% del ancho total
+const cropHeight = videoHeight * 0.5; // 15% del alto total
+const cropX = videoWidth * 0.5; // 10% desde la izquierda
+const cropY = videoHeight * 0.5; // 7% desde la parte superior
+
 export default function Register({ roles = [] }: RolePropos) {
+    const [fileSizeExceeded, setFileSizeExceeded] = useState(3 * MB);
     const [stream, setStream] = useState<MediaStream | null>(null);
     const { auth } = usePage<SharedData>().props;
     const [showModal, setShowModal] = useState(true);
@@ -102,15 +115,42 @@ export default function Register({ roles = [] }: RolePropos) {
             fileInputRef.current.click();
         }
     };
+    const imageCompress = async (file: File | Blob | any): Promise<File> => {
+        return new Promise((resolve, reject) => {
+            new Compressor(file, {
+                quality: 0.1,
+                convertSize: 1, // 3MB
+                maxWidth: 900,
+                maxHeight: 800,
+                success(result: any) {
+                    // Convertir el Blob a un File
+                    const compressedFile = new File([result], file.name, {
+                        type: result.type,
+                        lastModified: Date.now(),
+                    });
 
-    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+                    resolve(compressedFile); // Resolver la promesa con el archivo comprimido
+                },
+                error(err: any) {
+                    reject(err); // Rechazar la promesa si ocurre un error
+                },
+            });
+        });
+    };
+
+    const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (file) {
+            let newFile = file;
+            const fileCompressed = await imageCompress(file);
+            newFile = fileCompressed;
+
             setData('photo', file);
+            setShowVideo(false);
             setShowModal(false);
 
             const reader = new FileReader();
-            reader.readAsDataURL(file);
+            reader.readAsDataURL(newFile);
             reader.onload = async () => {
                 const base64Image: string = reader.result?.toString().split(',')[1] || '';
                 cargarImagenYProcesarOCR(base64Image);
@@ -157,8 +197,9 @@ export default function Register({ roles = [] }: RolePropos) {
                 informacionINE[IndexAnoRegistro + 1]['description'] + ' ' + informacionINE[IndexAnoRegistro + 2]['description'];
             const date_of_birthOCR = informacionINE[IndexFechaNacimiento + 1]['description'];
 
-            const sectionOCR = informacionINE[SearchArrayIndex(informacionINE, 'SECCIÓN') + 2]['description'];
-            const validityOCR = informacionINE[SearchArrayIndex(informacionINE, 'VIGENCIA') + 2]['description'];
+            const sectionOCR = informacionINE[SearchArrayIndex(informacionINE, 'SECCIÓN') + 1]['description'];
+            let validityOCR = informacionINE[SearchArrayIndex(informacionINE, 'VIGENCIA') + 1]['description'];
+            if (validityOCR.includes('-')) validityOCR = validityOCR.split('-').reverse()[0];
 
             setData('name', nameLarge);
             setData('address', addressOCR);
@@ -172,12 +213,18 @@ export default function Register({ roles = [] }: RolePropos) {
             console.error('Error al realizar OCR con Google Vision:', error);
         }
     };
+
     const verCamara = () => {
+        // Configurar restricciones de la cámara
+        const constraints = {
+            video: esMovil
+                ? { width: videoWidth, height: videoHeight, facingMode: { exact: 'environment' } } // Cámara trasera en móviles
+                : { width: videoWidth, height: videoHeight }, // Cámara por defecto en escritorio
+        };
+
         setShowModal(false);
         navigator.mediaDevices
-            .getUserMedia({
-                video: { width: 1920, height: 1080 },
-            })
+            .getUserMedia(constraints)
             .then((stream) => {
                 setStream(stream);
                 const miVideo = videoRef.current;
@@ -190,22 +237,86 @@ export default function Register({ roles = [] }: RolePropos) {
                 console.error('Error al acceder a la cámara:', err);
             });
     };
+    // const tomarFoto = () => {
+    //     setShowCanvas(true);
+    //     setTimeout(() => {
+    //         const w = 420;
+    //         const h = w / (16 / 9);
+
+    //         const video = videoRef.current;
+    //         const canva = canvaRef.current;
+
+    //         if (video && canva) {
+    //             canva.width = w;
+    //             canva.height = h;
+    //             const context = canva.getContext('2d');
+
+    //             if (context) {
+    //                 context.drawImage(video, 0, 0, w, h);
+    //                 const base64Image = canva.toDataURL('image/jpeg').split(',')[1];
+    //                 cargarImagenYProcesarOCR(base64Image);
+    //                 fetch(`data:image/jpeg;base64,${base64Image}`)
+    //                     .then((res) => res.blob())
+    //                     .then((blob) => {
+    //                         const file = new File([blob], 'random.jpg', { type: 'image/jpeg' });
+    //                         setData('photo', file);
+    //                     });
+
+    //                 if (stream) {
+    //                     stream.getTracks().forEach((track) => track.stop());
+    //                     setStream(null);
+    //                 }
+
+    //                 if (videoRef.current) {
+    //                     videoRef.current.srcObject = null;
+    //                 }
+
+    //                 setShowVideo(false);
+    //                 setShowCanvas(false);
+    //             } else {
+    //                 console.error('No se pudo obtener el contexto 2D del canvas.');
+    //             }
+    //         } else {
+    //             console.error('El video o el canvas no están disponibles.');
+    //         }
+    //     }, 300);
+    // };
+
     const tomarFoto = () => {
         setShowCanvas(true);
         setTimeout(() => {
-            const w = 420;
-            const h = w / (16 / 9);
-
             const video = videoRef.current;
             const canva = canvaRef.current;
 
             if (video && canva) {
-                canva.width = w;
-                canva.height = h;
+                const videoWidth = video.videoWidth; // Obtener ancho real del video
+                const videoHeight = video.videoHeight; // Obtener alto real del video
+
+                // Definir el área de recorte (ejemplo: 40% del tamaño total)
+                const cropWidth = videoWidth * 0.4; // 40% del ancho total del video
+                const cropHeight = videoHeight * 0.4; // 40% del alto total del video
+                const cropX = (videoWidth - cropWidth) / 2; // Centrar en X
+                const cropY = (videoHeight - cropHeight) / 2; // Centrar en Y
+
+                // Ajustar el tamaño del canvas
+                canva.width = cropWidth;
+                canva.height = cropHeight;
                 const context = canva.getContext('2d');
 
                 if (context) {
-                    context.drawImage(video, 0, 0, w, h);
+                    // Capturar solo la región del video que se marcó visualmente
+                    context.drawImage(
+                        video,
+                        cropX,
+                        cropY,
+                        cropWidth,
+                        cropHeight, // Recorte desde el video
+                        0,
+                        0,
+                        cropWidth,
+                        cropHeight, // Dibujado en el canvas
+                    );
+
                     const base64Image = canva.toDataURL('image/jpeg').split(',')[1];
                     cargarImagenYProcesarOCR(base64Image);
                     fetch(`data:image/jpeg;base64,${base64Image}`)
@@ -258,7 +369,7 @@ export default function Register({ roles = [] }: RolePropos) {
     };
 
     return (
-        <AuthLayout title="Registar Usuario" description="">
+        <AuthLayout title="Registar Usuario" description="" showImage={false}>
             <Head title="Register" />
 
             {showModal && (
@@ -266,7 +377,7 @@ export default function Register({ roles = [] }: RolePropos) {
                     <div className="rounded-lg bg-white p-6 text-center shadow-lg">
                         <h2 className="mb-4 text-lg font-bold">Seleccionar Foto</h2>
                         <div className="flex gap-4">
-                            <Button onClick={handleSelectPhoto}>Seleccionar de la Galería</Button>
+                            <Button onClick={handleSelectPhoto}>Galería</Button>
                             <Button onClick={verCamara}>Tomar Foto</Button>
                         </div>
                     </div>
@@ -274,8 +385,25 @@ export default function Register({ roles = [] }: RolePropos) {
             )}
 
             <div className="flex flex-col gap-6">
-                {showVideo && <video ref={videoRef}></video>}
-                {showCanvas && <canvas ref={canvaRef}></canvas>}
+                {showVideo && (
+                    <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+                        <video ref={videoRef} autoPlay playsInline style={{ width: '100%', height: '100%' }} />
+
+                        <div
+                            className="rounded-lg"
+                            style={{
+                                position: 'absolute',
+                                top: `${(cropY / videoHeight) * 100}%`,
+                                left: `${(cropX / videoWidth) * 100}%`,
+                                width: `${(cropWidth / videoWidth) * 100}%`,
+                                height: `${(cropHeight / videoHeight) * 100}%`,
+                                border: '5px solid red',
+                                transform: 'translate(-50%, -50%)',
+                            }}
+                        />
+                    </div>
+                )}
+                {showCanvas && <canvas ref={canvaRef} style={{ width: '100%', height: '100%' }}></canvas>}
                 {showVideo && <Button onClick={tomarFoto}>Tomar Foto</Button>}
             </div>
 
@@ -285,11 +413,7 @@ export default function Register({ roles = [] }: RolePropos) {
                 {data.photo && (
                     <div className="text-center">
                         <Link href="/registro" prefetch>
-                            <img
-                                src={URL.createObjectURL(data.photo)}
-                                alt="Foto seleccionada"
-                                className="fill mx-auto h-32 w-48 rounded-lg object-fill"
-                            />
+                            <img src={URL.createObjectURL(data.photo)} alt="Foto seleccionada" className="fill mx-auto rounded-lg object-fill" />
                         </Link>
 
                         <InputError message={errors.photo} className="mt-2" />

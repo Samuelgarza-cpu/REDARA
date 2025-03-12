@@ -34,7 +34,11 @@ export default function Login({ status, canResetPassword }: LoginProps) {
     };
 
     return (
-        <AuthLayout title="Conexiones que crecen juntas" description="Ingrese su correo electrónico y contraseña a continuación para iniciar sesión">
+        <AuthLayout
+            title="Conexiones que crecen juntas"
+            description="Ingrese su correo electrónico y contraseña a continuación para iniciar sesión"
+            showImage={true}
+        >
             <Head title="Log in" />
 
             <form className="flex flex-col gap-6" onSubmit={submit}>
