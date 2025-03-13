@@ -11,6 +11,8 @@ import { SharedData } from '@/types';
 import { Textarea } from '@headlessui/react';
 import axios from 'axios';
 import Compressor from 'compressorjs';
+import Swal from 'sweetalert2';
+
 type RegisterForm = {
     name: string;
     address: string;
@@ -83,8 +85,9 @@ export default function Register({ roles = [] }: RolePropos) {
 
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
+
         post(route('register'), {
-            onFinish: () => {
+            onSuccess: () => {
                 reset(
                     'name',
                     'address',
@@ -102,10 +105,24 @@ export default function Register({ roles = [] }: RolePropos) {
                     'photo',
                 );
 
-                // ✅ Limpiar el input file manualmente
+                // Limpiar el input file manualmente
                 if (fileInputRef.current) {
                     fileInputRef.current.value = '';
                 }
+                Swal.fire({
+                    title: 'Registrado',
+                    icon: 'success',
+                    draggable: true,
+                });
+            },
+            onError: (errors) => {
+                const errorMessage = errors?.error || 'Hubo un problema con el formulario.';
+                Swal.fire({
+                    title: 'Error',
+                    text: errorMessage,
+                    icon: 'error',
+                    confirmButtonText: 'Aceptar',
+                });
             },
         });
     };
