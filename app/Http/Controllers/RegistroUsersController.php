@@ -41,4 +41,9 @@ class RegistroUsersController extends Controller
             'totalRegistrations' => $totalRegistros
         ]);
     }
+
+    public function indexAsistencia()
+    {
+        return Inertia::render('asistencia');
+    }
 }

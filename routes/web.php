@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\RegistroUsersController;
+use App\Http\Controllers\VoterController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -20,6 +21,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('register', [RegisteredUserController::class, 'store']);
     Route::get('registro', [RegistroUsersController::class, 'index'])->name('registro');
     Route::get('tabla-registros', [RegistroUsersController::class, 'table'])->name('tablaregistros');
+    Route::get('asistencia', [RegistroUsersController::class, 'indexAsistencia'])->name('asistencia');
+
+    Route::post('/verificar-voter-code', [VoterController::class, 'verificarVoterCode'])->name('verificar.voter_code');
 });
 
 require __DIR__ . '/settings.php';

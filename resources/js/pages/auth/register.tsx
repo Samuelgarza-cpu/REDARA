@@ -61,6 +61,7 @@ export default function Register({ roles = [] }: RolePropos) {
     const [stream, setStream] = useState<MediaStream | null>(null);
     const { auth } = usePage<SharedData>().props;
     const [showModal, setShowModal] = useState(true);
+    const [showCurp, setShowCurp] = useState(true);
     const [showCanvas, setShowCanvas] = useState(false);
     const [showVideo, setShowVideo] = useState(true);
     const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -116,6 +117,10 @@ export default function Register({ roles = [] }: RolePropos) {
                 });
             },
             onError: (errors) => {
+                if (JSON.stringify(errors).includes('CURP')) {
+                    setShowCurp(false);
+                }
+
                 const errorMessage = errors?.error || 'Hubo un problema con el formulario.';
                 Swal.fire({
                     title: 'Error',
@@ -477,6 +482,7 @@ export default function Register({ roles = [] }: RolePropos) {
                             value={data.voter_code}
                             onChange={(e) => setData('voter_code', e.target.value)}
                             disabled={processing}
+                            readOnly
                             // placeholder="Full voter_code"
                         />
                         <InputError message={errors.voter_code} className="mt-2" />
@@ -491,6 +497,7 @@ export default function Register({ roles = [] }: RolePropos) {
                             value={data.curp}
                             onChange={(e) => setData('curp', e.target.value)}
                             disabled={processing}
+                            readOnly={showCurp}
                             // placeholder="Full curp"
                         />
                         <InputError message={errors.curp} className="mt-2" />
@@ -545,6 +552,7 @@ export default function Register({ roles = [] }: RolePropos) {
                             value={data.validity}
                             onChange={(e) => setData('validity', e.target.value)}
                             disabled={processing}
+                            readOnly
                         />
                         <InputError message={errors.validity} className="mt-2" />
                     </div>
