@@ -31,6 +31,11 @@ const mainNavItems: NavGroup[] = [
                 url: '/asistencia',
                 icon: SearchCheck,
             },
+            {
+                title: 'Reportes',
+                url: '/usuarios',
+                icon: SearchCheck,
+            },
         ],
     },
 ];

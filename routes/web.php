@@ -22,6 +22,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('registro', [RegistroUsersController::class, 'index'])->name('registro');
     Route::get('tabla-registros', [RegistroUsersController::class, 'table'])->name('tablaregistros');
     Route::get('asistencia', [RegistroUsersController::class, 'indexAsistencia'])->name('asistencia');
+    Route::get('usuarios', [RegistroUsersController::class, 'getAllUsers'])->name('usuarios');
 
     Route::post('/verificar-voter-code', [VoterController::class, 'verificarVoterCode'])->name('verificar.voter_code');
 });

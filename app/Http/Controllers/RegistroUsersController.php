@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Roles;
 use App\Models\User;
 use App\Models\UserRoleRegister;
+use App\Models\ViewUsers;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -45,5 +46,11 @@ class RegistroUsersController extends Controller
     public function indexAsistencia()
     {
         return Inertia::render('asistencia');
+    }
+
+    public function getAllUsers()
+    {
+        $users = ViewUsers::all();
+        return Inertia::render('reporteUsuarios', ['users' => $users ?? []]);
     }
 }
