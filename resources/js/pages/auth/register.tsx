@@ -180,6 +180,48 @@ export default function Register({ roles = [] }: RolePropos) {
         }
     };
 
+    const SearchArrayIndex = (data: [], descripcion: string) => {
+        return data.findIndex((OCR: any) => OCR.description === descripcion);
+    };
+
+    const obtenerValorVigencia = (datos: [], clave: string): string | null => {
+        for (let i = 0; i < datos.length; i++) {
+            if (datos[i]['description'] === clave) {
+                const posibleValor = datos[i + 1]['description'];
+                if (posibleValor && /^\d{4}-\d{4}$/.test(posibleValor)) {
+                    return posibleValor;
+                } else {
+                    const posibleValor2 = datos[i + 2]['description'];
+                    return posibleValor2;
+                }
+            }
+        }
+        return null; // Retorna null si no encuentra un valor válido
+    };
+
+    const obtenerValorSeccion = (datos: [], clave: string): string | null => {
+        const normalizarTexto = (texto: string) =>
+            texto
+                .normalize('NFD')
+                .replace(/\p{Diacritic}/gu, '')
+                .toUpperCase();
+
+        for (let i = 0; i < datos.length; i++) {
+            if (normalizarTexto(datos[i]['description']) === normalizarTexto(clave)) {
+                const posibleValor = datos[i + 1]?.['description'];
+                if (posibleValor && /^\d+$/.test(posibleValor)) {
+                    return posibleValor;
+                } else {
+                    const posibleValor2 = datos[i + 2]?.['description'];
+                    if (posibleValor2 && /^\d+$/.test(posibleValor2)) {
+                        return posibleValor2;
+                    }
+                }
+            }
+        }
+        return null; // Retorna null si no encuentra un valor válido
+    };
+
     const cargarImagenYProcesarOCR = async (base64Image: string) => {
         try {
             const apiKey = import.meta.env.VITE_API_KEY_ORC;
@@ -193,6 +235,7 @@ export default function Register({ roles = [] }: RolePropos) {
             });
 
             const informacionINE = visionResponse.data.responses[0].textAnnotations;
+            console.log(informacionINE);
 
             //ENCONTRAR INDICES DE PARTIDA
             const IndexNombre = informacionINE.findIndex((OCR: any) => OCR.description === 'NOMBRE');
@@ -206,22 +249,19 @@ export default function Register({ roles = [] }: RolePropos) {
             const nameLarge = elementosEntre.map((obj: any) => obj.description).join(' ');
             const elementosEntre2 = informacionINE.slice(IndexDomicilio + 1, IndexClaveElector - 2);
             const addressOCR = elementosEntre2.map((obj: any) => obj.description).join(' ');
-            //DESPUES HICE ESTO, AL RATO LO JUNTO
-            const SearchArrayIndex = (data: [], descripcion: string) => {
-                return data.findIndex((OCR: any) => OCR.description === descripcion);
-            };
-
-            //CREAR VARIABLES DE CONCATENACION
-
             const voter_codeOCR = informacionINE[IndexClaveElector + 1]['description'];
             const curpOCR = informacionINE[IndexCurp + 1]['description'];
             const registration_yearOCR =
                 informacionINE[IndexAnoRegistro + 1]['description'] + ' ' + informacionINE[IndexAnoRegistro + 2]['description'];
             const date_of_birthOCR = informacionINE[IndexFechaNacimiento + 1]['description'];
+            // const sectionOCR = informacionINE[SearchArrayIndex(informacionINE, 'SECCIÓN') + 1]['description'];
+            const sectionOCR = obtenerValorSeccion(informacionINE, 'SECCION');
 
-            const sectionOCR = informacionINE[SearchArrayIndex(informacionINE, 'SECCIÓN') + 1]['description'];
-            let validityOCR = informacionINE[SearchArrayIndex(informacionINE, 'VIGENCIA') + 1]['description'];
-            if (validityOCR.includes('-')) validityOCR = validityOCR.split('-').reverse()[0];
+            // let validityOCR = informacionINE[SearchArrayIndex(informacionINE, 'VIGENCIA') + 1]['description'];
+            let validityOCR = obtenerValorVigencia(informacionINE, 'VIGENCIA');
+            if (typeof validityOCR === 'string' && validityOCR.includes('-')) {
+                validityOCR = validityOCR.split('-').reverse()[0];
+            }
 
             setData('name', nameLarge);
             setData('address', addressOCR);
@@ -229,8 +269,8 @@ export default function Register({ roles = [] }: RolePropos) {
             setData('curp', curpOCR);
             setData('registration_year', registration_yearOCR);
             setData('date_of_birth', date_of_birthOCR);
-            setData('section', sectionOCR);
-            setData('validity', validityOCR);
+            setData('section', String(sectionOCR));
+            setData('validity', String(validityOCR));
         } catch (error) {
             console.error('Error al realizar OCR con Google Vision:', error);
         }
