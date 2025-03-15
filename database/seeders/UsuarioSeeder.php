@@ -24,7 +24,7 @@ class UsuarioSeeder extends Seeder
             'section' => '001',
             'validity' => '2030',
             'id_rol' => 1,
-            'id_user_register' => 1,
+            'id_user_register' => 0,
             'email' => 'control@redara.com',
             'password' => Hash::make('123456789'), // Contraseña encriptada
         ]);
