@@ -28,6 +28,7 @@ type RegisterForm = {
     password: string;
     password_confirmation: string;
     photo: File | null;
+    telephone: string;
 };
 type Role = {
     id: number;
@@ -82,10 +83,13 @@ export default function Register({ roles = [] }: RolePropos) {
         password: '123456789',
         password_confirmation: '123456789',
         photo: null,
+        telephone: '',
     });
 
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
+
+        console.log(data);
 
         post(route('register'), {
             onSuccess: () => {
@@ -104,6 +108,7 @@ export default function Register({ roles = [] }: RolePropos) {
                     'password',
                     'password_confirmation',
                     'photo',
+                    'telephone',
                 );
 
                 // Limpiar el input file manualmente
@@ -190,6 +195,8 @@ export default function Register({ roles = [] }: RolePropos) {
                 const posibleValor = datos[i + 1]['description'];
                 if (posibleValor && /^\d{4}-\d{4}$/.test(posibleValor)) {
                     return posibleValor;
+                } else if (posibleValor && /^\d{4}$/.test(posibleValor)) {
+                    return posibleValor;
                 } else {
                     const posibleValor2 = datos[i + 2]['description'];
                     return posibleValor2;
@@ -235,7 +242,6 @@ export default function Register({ roles = [] }: RolePropos) {
             });
 
             const informacionINE = visionResponse.data.responses[0].textAnnotations;
-            console.log(informacionINE);
 
             //ENCONTRAR INDICES DE PARTIDA
             const IndexNombre = informacionINE.findIndex((OCR: any) => OCR.description === 'NOMBRE');
@@ -250,7 +256,11 @@ export default function Register({ roles = [] }: RolePropos) {
             const elementosEntre2 = informacionINE.slice(IndexDomicilio + 1, IndexClaveElector - 2);
             const addressOCR = elementosEntre2.map((obj: any) => obj.description).join(' ');
             const voter_codeOCR = informacionINE[IndexClaveElector + 1]['description'];
-            const curpOCR = informacionINE[IndexCurp + 1]['description'];
+            let curpOCR = informacionINE[IndexCurp + 1]['description'];
+            if (!(typeof curpOCR === 'string' && /^[A-Z]{4}\d{6}[HM][A-Z]{5}[0-9A-Z]{2}$/.test(curpOCR))) {
+                curpOCR = '';
+            }
+
             const registration_yearOCR =
                 informacionINE[IndexAnoRegistro + 1]['description'] + ' ' + informacionINE[IndexAnoRegistro + 2]['description'];
             const date_of_birthOCR = informacionINE[IndexFechaNacimiento + 1]['description'];
@@ -299,50 +309,6 @@ export default function Register({ roles = [] }: RolePropos) {
                 console.error('Error al acceder a la cámara:', err);
             });
     };
-    // const tomarFoto = () => {
-    //     setShowCanvas(true);
-    //     setTimeout(() => {
-    //         const w = 420;
-    //         const h = w / (16 / 9);
-
-    //         const video = videoRef.current;
-    //         const canva = canvaRef.current;
-
-    //         if (video && canva) {
-    //             canva.width = w;
-    //             canva.height = h;
-    //             const context = canva.getContext('2d');
-
-    //             if (context) {
-    //                 context.drawImage(video, 0, 0, w, h);
-    //                 const base64Image = canva.toDataURL('image/jpeg').split(',')[1];
-    //                 cargarImagenYProcesarOCR(base64Image);
-    //                 fetch(`data:image/jpeg;base64,${base64Image}`)
-    //                     .then((res) => res.blob())
-    //                     .then((blob) => {
-    //                         const file = new File([blob], 'random.jpg', { type: 'image/jpeg' });
-    //                         setData('photo', file);
-    //                     });
-
-    //                 if (stream) {
-    //                     stream.getTracks().forEach((track) => track.stop());
-    //                     setStream(null);
-    //                 }
-
-    //                 if (videoRef.current) {
-    //                     videoRef.current.srcObject = null;
-    //                 }
-
-    //                 setShowVideo(false);
-    //                 setShowCanvas(false);
-    //             } else {
-    //                 console.error('No se pudo obtener el contexto 2D del canvas.');
-    //             }
-    //         } else {
-    //             console.error('El video o el canvas no están disponibles.');
-    //         }
-    //     }, 300);
-    // };
 
     const tomarFoto = () => {
         setShowCanvas(true);
@@ -613,6 +579,20 @@ export default function Register({ roles = [] }: RolePropos) {
                         <InputError message={errors.email} />
                     </div>
                     <div className="grid gap-2">
+                        <Label htmlFor="email">Teléfono</Label>
+                        <Input
+                            id="telephone"
+                            type="telephone"
+                            required
+                            tabIndex={2}
+                            autoComplete="telephone"
+                            value={data.telephone}
+                            onChange={(e) => setData('telephone', e.target.value)}
+                            disabled={processing}
+                        />
+                        <InputError message={errors.telephone} />
+                    </div>
+                    <div className="grid gap-2">
                         <Label htmlFor="id_rol">Rol</Label>
                         <select
                             id="id_rol"
@@ -635,6 +615,7 @@ export default function Register({ roles = [] }: RolePropos) {
                         </select>
                         <InputError message={errors.id_rol} className="mt-2" />
                     </div>
+
                     {auth.user.id_rol == 1 ? (
                         <>
                             {' '}

@@ -54,6 +54,7 @@ class RegisteredUserController extends Controller
 
                 'curp.required' => 'El CURP es obligatorio.',
                 'curp.string' => 'El CURP debe ser una cadena de caracteres.',
+                'curp.min' => 'El CURP no debe ser menor a los 18 caracteres.',
                 'curp.max' => 'El CURP no debe superar los 18 caracteres.',
                 'curp.unique' => 'El CURP ya está registrado.',
 
@@ -75,18 +76,22 @@ class RegisteredUserController extends Controller
                 'password.confirmed' => 'La confirmación de la contraseña no coincide.',
                 'password' => 'La contraseña no es válida.',
 
+                'telephone.required' => 'El Teléfono es obligatoria.',
+                'telephone' => 'El teléfono no es valido.',
+
                 'date_of_birth.date_format_dd_mm_yyyy' => 'El campo fecha de nacimiento debe tener el formato DD/MM/YYYY.',
             ];
             $validated = $request->validate([
                 'name' => 'required|string|max:255',
                 'address' => 'required|string|max:255',
                 'voter_code' => 'required|string|max:20|unique:users',
-                'curp' => 'required|string|max:18|unique:users',
+                'curp' => 'required|string|min:18|max:18|unique:users',
                 'date_of_birth' => 'required|date_format_dd_mm_yyyy',
                 'section' => 'required|digits:4',
                 'validity' => "required|numeric|gte:$currentYear",
                 'email' => 'required|string|lowercase|email|max:255|unique:users',
                 'password' => ['required', 'confirmed', Rules\Password::defaults()],
+                'telephone' => ['required', 'regex:/^\+?[0-9\s\-\(\)]+$/', 'min:10', 'max:20'],
             ], $messages);
 
             $imagePath = null;
@@ -108,6 +113,7 @@ class RegisteredUserController extends Controller
                 'email' => $validated['email'],
                 'password' => Hash::make($validated['password']),
                 'photo' => $imagePath,
+                'telephone' => $validated['telephone']
             ]);
 
             // Retornar JSON de éxito sin redirigir

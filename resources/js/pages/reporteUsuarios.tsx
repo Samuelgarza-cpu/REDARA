@@ -44,7 +44,13 @@ const flattenHierarchy = (users: User[], allUsers: User[], level = 0): any[] => 
                 Nombre: user.name,
                 Direccion: user.address,
                 Cargo: user.role_name,
-                'Pertenece a': parent ? parent.name : 'N/A', // Si tiene padre, muestra su nombre, si no "N/A"
+                ClaveElector: user.voter_code,
+                CURP: user.curp,
+                AnoRegistro: user.registration_year,
+                Seccion: user.section,
+                Vigencia: user.validity,
+                Correo: user.email,
+                'Pertenece a': parent ? parent.name : 'N/A',
             },
             ...flattenHierarchy(user.children || [], allUsers),
         ];

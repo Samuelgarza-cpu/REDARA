@@ -32,7 +32,8 @@ class User extends Authenticatable
         'password',
         "photo",
         "voto",
-        "id_user_register_voto"
+        "id_user_register_voto",
+        "telephone"
     ];
 
     /**

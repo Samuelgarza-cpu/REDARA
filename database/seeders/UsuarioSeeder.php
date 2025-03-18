@@ -17,8 +17,8 @@ class UsuarioSeeder extends Seeder
         DB::table('users')->insert([
             'name' => 'REDARA NAME',
             'address' => 'REDARA ADDRESS',
-            'voter_code' => 'VTR123456',
-            'curp' => 'JUPR900101HDFRRN01',
+            'voter_code' => 'xxxxxxxxxxxxxxxxxx',
+            'curp' => 'xxxxxxxxxxxxxxxxxx',
             'registration_year' => 2025,
             'date_of_birth' => '1990-01-01',
             'section' => '001',
