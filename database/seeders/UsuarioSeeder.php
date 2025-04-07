@@ -15,8 +15,8 @@ class UsuarioSeeder extends Seeder
     public function run(): void
     {
         DB::table('users')->insert([
-            'name' => 'REDARA NAME',
-            'address' => 'REDARA ADDRESS',
+            'name' => 'BEEVRA NAME',
+            'address' => 'BEEVRA ADDRESS',
             'voter_code' => 'xxxxxxxxxxxxxxxxxx',
             'curp' => 'xxxxxxxxxxxxxxxxxx',
             'registration_year' => 2025,
@@ -25,7 +25,7 @@ class UsuarioSeeder extends Seeder
             'validity' => '2030',
             'id_rol' => 1,
             'id_user_register' => 0,
-            'email' => 'control@redara.com',
+            'email' => 'control@beevra.com',
             'password' => Hash::make('123456789'), // Contraseña encriptada
         ]);
     }
